@@ -2,6 +2,22 @@
 
 import { useState } from 'react'
 import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
+import { formatearMoneda } from '@/lib/formato'
+
+function IconoEscanear() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+      <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+      <line x1="7" y1="8" x2="7" y2="16" />
+      <line x1="10" y1="8" x2="10" y2="16" />
+      <line x1="13" y1="8" x2="13" y2="16" />
+      <line x1="16" y1="8" x2="16" y2="16" />
+    </svg>
+  )
+}
 
 export default function Vender() {
   const [busqueda, setBusqueda] = useState('')
@@ -119,7 +135,7 @@ export default function Vender() {
         return
       }
 
-      setMensaje(`Venta registrada: $${total.toFixed(2)}`)
+      setMensaje(`Venta registrada: ${formatearMoneda(total)}`)
       setCarrito([])
     } catch (error) {
       setMensaje('Error al conectar con el servidor')
@@ -128,7 +144,7 @@ export default function Vender() {
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-semibold mb-4">Vender</h1>
+      <h1 className="text-xl font-semibold text-gray-900 mb-4">Vender</h1>
 
       <form onSubmit={buscarProducto} className="flex gap-2 mb-2">
         <input
@@ -136,12 +152,12 @@ export default function Vender() {
           placeholder="Código de barras o nombre"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
         />
         <button
           type="submit"
           disabled={buscando}
-          className="bg-gray-900 text-white px-4 rounded-lg text-sm font-medium"
+          className="bg-gray-900 text-white px-4 rounded-lg text-sm font-medium active:scale-95 transition"
         >
           Buscar
         </button>
@@ -149,9 +165,10 @@ export default function Vender() {
 
       <button
         onClick={() => setEscaneando(true)}
-        className="w-full mb-4 border border-gray-300 rounded-lg py-2 text-sm font-medium flex items-center justify-center gap-2"
+        className="w-full mb-4 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 flex items-center justify-center gap-2 active:scale-95 transition"
       >
-        📷 Escanear código de barras
+        <IconoEscanear />
+        Escanear código de barras
       </button>
 
       {escaneando && (
@@ -167,11 +184,11 @@ export default function Vender() {
             <div
               key={producto.id}
               onClick={() => agregarAlCarrito(producto)}
-              className="bg-white border border-gray-200 rounded-lg p-3 text-sm cursor-pointer active:bg-gray-100"
+              className="bg-white border border-gray-200 rounded-xl p-3 text-sm cursor-pointer active:bg-gray-50 transition shadow-sm"
             >
-              <div className="font-medium">{producto.nombre}</div>
+              <div className="font-medium text-gray-900">{producto.nombre}</div>
               <div className="text-gray-500 text-xs">
-                ${Number(producto.precio).toFixed(2)} · stock: {producto.stockActual}
+                {formatearMoneda(producto.precio)} · stock: {producto.stockActual}
               </div>
             </div>
           ))}
@@ -188,25 +205,25 @@ export default function Vender() {
         {carrito.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between"
+            className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm"
           >
             <div>
-              <div className="text-sm font-medium">{item.nombre}</div>
+              <div className="text-sm font-medium text-gray-900">{item.nombre}</div>
               <div className="text-xs text-gray-500">
-                ${Number(item.precio).toFixed(2)} x {item.cantidad}
+                {formatearMoneda(item.precio)} x {item.cantidad}
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => cambiarCantidad(item.id, -1)}
-                className="w-7 h-7 rounded-full border border-gray-300 text-sm"
+                className="w-7 h-7 rounded-full border border-gray-300 text-sm active:scale-95 transition"
               >
                 −
               </button>
-              <span className="w-5 text-center text-sm">{item.cantidad}</span>
+              <span className="w-5 text-center text-sm text-gray-900">{item.cantidad}</span>
               <button
                 onClick={() => cambiarCantidad(item.id, 1)}
-                className="w-7 h-7 rounded-full border border-gray-300 text-sm"
+                className="w-7 h-7 rounded-full border border-gray-300 text-sm active:scale-95 transition"
               >
                 +
               </button>
@@ -223,13 +240,13 @@ export default function Vender() {
 
       <div className="flex items-center justify-between mb-3">
         <span className="text-gray-500 text-sm">Total</span>
-        <span className="text-2xl font-semibold">${total.toFixed(2)}</span>
+        <span className="text-2xl font-semibold text-gray-900">{formatearMoneda(total)}</span>
       </div>
 
       <button
         onClick={confirmarVenta}
         disabled={carrito.length === 0}
-        className="w-full bg-gray-900 disabled:bg-gray-300 text-white rounded-lg py-3 font-medium"
+        className="w-full bg-gray-900 disabled:bg-gray-300 text-white rounded-lg py-3 font-medium active:scale-95 transition"
       >
         Confirmar venta
       </button>

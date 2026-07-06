@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-// PUT: editar un producto (nombre, precio, stock, código)
+// PUT: editar un producto
 export async function PUT(request, { params }) {
   const { id } = await params
 
@@ -11,12 +11,7 @@ export async function PUT(request, { params }) {
 
     const producto = await prisma.producto.update({
       where: { id: Number(id) },
-      data: {
-        codigoBarra: codigoBarra || null,
-        nombre,
-        precio,
-        stockActual,
-      },
+      data: { codigoBarra: codigoBarra || null, nombre, precio, stockActual },
     })
 
     return NextResponse.json(producto)
@@ -31,14 +26,17 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE: eliminar un producto
+// DELETE: desactivar un producto (no se borra, para no romper el historial de ventas)
 export async function DELETE(request, { params }) {
   const { id } = await params
 
   try {
-    await prisma.producto.delete({ where: { id: Number(id) } })
+    await prisma.producto.update({
+      where: { id: Number(id) },
+      data: { activo: false },
+    })
     return NextResponse.json({ ok: true })
   } catch (error) {
-    return NextResponse.json({ error: 'Error al eliminar producto' }, { status: 500 })
+    return NextResponse.json({ error: 'Error al desactivar producto' }, { status: 500 })
   }
 }

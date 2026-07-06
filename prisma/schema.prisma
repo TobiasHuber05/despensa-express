@@ -13,6 +13,7 @@ model Producto {
   nombre        String
   precio        Decimal  @db.Decimal(10, 2)
   stockActual   Int      @default(0)
+  activo        Boolean  @default(true)
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 
