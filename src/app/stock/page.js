@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
 
 export default function Stock() {
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [escaneando, setEscaneando] = useState(false)
 
   const [codigoBarra, setCodigoBarra] = useState('')
   const [nombre, setNombre] = useState('')
@@ -44,6 +46,11 @@ export default function Stock() {
     setStockActual(String(producto.stockActual))
     setMensaje('')
     setMostrarForm(true)
+  }
+
+  function onCodigoEscaneado(codigo) {
+    setEscaneando(false)
+    setCodigoBarra(codigo)
   }
 
   async function guardar(e) {
@@ -142,19 +149,28 @@ export default function Stock() {
       </div>
 
       {mostrarForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-end z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-end z-40">
           <div className="bg-white w-full rounded-t-2xl p-4 max-w-md mx-auto">
             <h2 className="text-lg font-semibold mb-3">
               {editando ? 'Editar producto' : 'Nuevo producto'}
             </h2>
             <form onSubmit={guardar} className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Código de barras (opcional)"
-                value={codigoBarra}
-                onChange={(e) => setCodigoBarra(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Código de barras (opcional)"
+                  value={codigoBarra}
+                  onChange={(e) => setCodigoBarra(e.target.value)}
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setEscaneando(true)}
+                  className="border border-gray-300 rounded-lg px-3 text-sm"
+                >
+                  📷
+                </button>
+              </div>
               <input
                 type="text"
                 placeholder="Nombre del producto"
@@ -200,6 +216,13 @@ export default function Stock() {
             </form>
           </div>
         </div>
+      )}
+
+      {escaneando && (
+        <EscanerCodigoBarras
+          onDetectado={onCodigoEscaneado}
+          onCerrar={() => setEscaneando(false)}
+        />
       )}
     </div>
   )
