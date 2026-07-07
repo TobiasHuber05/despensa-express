@@ -27,6 +27,7 @@ export default function Stock() {
   const [mostrarForm, setMostrarForm] = useState(false)
   const [escaneando, setEscaneando] = useState(false)
   const [reposicionAbierta, setReposicionAbierta] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [codigoBarra, setCodigoBarra] = useState('')
   const [nombre, setNombre] = useState('')
@@ -38,7 +39,7 @@ export default function Stock() {
     setCargando(true)
     const res = await fetch('/api/productos')
     const data = await res.json()
-    setProductos(data)
+    setProductos(Array.isArray(data) ? data : [])
     setCargando(false)
   }
 
@@ -117,6 +118,15 @@ export default function Stock() {
 
   const stockBajo = productos.filter((p) => p.stockActual < 5)
 
+  // Filtro de búsqueda (por nombre o código de barra, insensible a mayúsculas)
+  const productosFiltrados = busqueda.trim()
+    ? productos.filter(
+        (p) =>
+          p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.codigoBarra && p.codigoBarra.includes(busqueda))
+      )
+    : productos
+
   return (
     <div className="max-w-md mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
@@ -137,7 +147,27 @@ export default function Stock() {
         </div>
       </div>
 
-      {stockBajo.length > 0 && (
+      {/* Buscador */}
+      <div className="mb-4 relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre o código..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-300 rounded-xl bg-white/95 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        />
+        {busqueda && (
+          <button
+            onClick={() => setBusqueda('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {stockBajo.length > 0 && !busqueda && (
         <div className="mb-4 bg-white/95 border border-red-300 rounded-xl overflow-hidden shadow-md">
           <button
             onClick={() => setReposicionAbierta((v) => !v)}
@@ -177,13 +207,22 @@ export default function Stock() {
 
       {cargando && <p className="text-white/70 text-sm">Cargando...</p>}
 
-      {!cargando && productos.length === 0 && (
-        <p className="text-white/70 text-sm">No hay productos cargados todavía</p>
+      {!cargando && productosFiltrados.length === 0 && (
+        <p className="text-white/70 text-sm text-center py-6">
+          {busqueda ? `No se encontró "${busqueda}"` : 'No hay productos cargados todavía'}
+        </p>
       )}
 
-      <h2 className="text-sm font-bold text-white mb-2">Todos los productos</h2>
+      {!cargando && productosFiltrados.length > 0 && (
+        <p className="text-xs text-white/60 mb-2 px-1">
+          {busqueda
+            ? `${productosFiltrados.length} resultado${productosFiltrados.length !== 1 ? 's' : ''}`
+            : `${productos.length} producto${productos.length !== 1 ? 's' : ''} en total`}
+        </p>
+      )}
+
       <div className="space-y-2">
-        {productos.map((producto) => (
+        {productosFiltrados.map((producto) => (
           <div
             key={producto.id}
             className="bg-white/95 border border-gray-300 rounded-xl p-3 flex items-center justify-between shadow-md"
@@ -191,7 +230,10 @@ export default function Stock() {
             <div>
               <div className="text-sm font-bold text-gray-900">{producto.nombre}</div>
               <div className="text-xs text-gray-700 font-semibold">
-                {formatearMoneda(producto.precio)} · stock: {producto.stockActual}
+                {formatearMoneda(producto.precio)} · stock:{' '}
+                <span className={producto.stockActual < 5 ? 'text-red-600 font-bold' : ''}>
+                  {producto.stockActual}
+                </span>
               </div>
               {producto.codigoBarra && (
                 <div className="text-xs text-gray-400">{producto.codigoBarra}</div>
