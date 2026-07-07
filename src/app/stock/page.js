@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
 import { formatearMoneda } from '@/lib/formato'
+import Link from 'next/link'
 
 function IconoEscanear() {
   return (
@@ -119,43 +120,51 @@ export default function Stock() {
   return (
     <div className="max-w-md mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold text-gray-900">Stock</h1>
-        <button
-          onClick={abrirNuevo}
-          className="bg-gray-900 text-white text-sm px-3 py-2 rounded-lg font-medium shadow-sm active:scale-95 transition"
-        >
-          + Producto
-        </button>
+        <h1 className="text-2xl font-bold text-white">Stock</h1>
+        <div className="flex gap-2">
+          <Link
+            href="/stock/importar"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-2 rounded-lg font-bold shadow-md active:scale-95 transition"
+          >
+            📤
+          </Link>
+          <button
+            onClick={abrirNuevo}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg font-bold shadow-md active:scale-95 transition"
+          >
+            + Producto
+          </button>
+        </div>
       </div>
 
       {stockBajo.length > 0 && (
-        <div className="mb-4 bg-white border border-red-200 rounded-xl overflow-hidden">
+        <div className="mb-4 bg-white/95 border border-red-300 rounded-xl overflow-hidden shadow-md">
           <button
             onClick={() => setReposicionAbierta((v) => !v)}
             className="w-full flex items-center justify-between p-3"
           >
-            <span className="text-sm font-medium text-red-600">
+            <span className="text-sm font-bold text-red-700">
               Ver reposición urgente ({stockBajo.length})
             </span>
-            <span className="text-red-400 text-xs">{reposicionAbierta ? '▲' : '▼'}</span>
+            <span className="text-red-600 text-xs font-bold">{reposicionAbierta ? '▲' : '▼'}</span>
           </button>
 
           {reposicionAbierta && (
-            <div className="border-t border-red-100 p-3 space-y-2 bg-red-50">
+            <div className="border-t border-red-200 p-3 space-y-2 bg-red-50">
               {stockBajo.map((producto) => (
                 <div
                   key={producto.id}
-                  className="bg-white border border-red-200 rounded-lg p-3 flex items-center justify-between"
+                  className="bg-white border border-red-300 rounded-lg p-3 flex items-center justify-between shadow-sm"
                 >
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{producto.nombre}</div>
-                    <div className="text-xs text-red-600">
+                    <div className="text-sm font-bold text-gray-900">{producto.nombre}</div>
+                    <div className="text-xs font-semibold text-red-700">
                       Quedan {producto.stockActual} unidades
                     </div>
                   </div>
                   <button
                     onClick={() => abrirEdicion(producto)}
-                    className="text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg px-3 py-1.5 active:scale-95 transition"
+                    className="text-xs font-bold text-white bg-red-600 hover:bg-red-700 border border-red-600 rounded-lg px-3 py-1.5 active:scale-95 transition"
                   >
                     Reponer
                   </button>
@@ -166,22 +175,22 @@ export default function Stock() {
         </div>
       )}
 
-      {cargando && <p className="text-gray-400 text-sm">Cargando...</p>}
+      {cargando && <p className="text-white/70 text-sm">Cargando...</p>}
 
       {!cargando && productos.length === 0 && (
-        <p className="text-gray-400 text-sm">No hay productos cargados todavía</p>
+        <p className="text-white/70 text-sm">No hay productos cargados todavía</p>
       )}
 
-      <h2 className="text-sm text-gray-500 mb-2">Todos los productos</h2>
+      <h2 className="text-sm font-bold text-white mb-2">Todos los productos</h2>
       <div className="space-y-2">
         {productos.map((producto) => (
           <div
             key={producto.id}
-            className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm"
+            className="bg-white/95 border border-gray-300 rounded-xl p-3 flex items-center justify-between shadow-md"
           >
             <div>
-              <div className="text-sm font-medium text-gray-900">{producto.nombre}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-sm font-bold text-gray-900">{producto.nombre}</div>
+              <div className="text-xs text-gray-700 font-semibold">
                 {formatearMoneda(producto.precio)} · stock: {producto.stockActual}
               </div>
               {producto.codigoBarra && (
@@ -217,9 +226,9 @@ export default function Stock() {
 
       {mostrarForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-4">
-          <div className="bg-white w-full max-w-sm rounded-2xl max-h-[85vh] flex flex-col shadow-xl">
+          <div className="bg-white/98 w-full max-w-sm rounded-2xl max-h-[85vh] flex flex-col shadow-xl">
             <div className="p-4 overflow-y-auto flex-1">
-              <h2 className="text-lg font-semibold mb-3 text-gray-900">
+              <h2 className="text-lg font-bold mb-3 text-gray-900">
                 {editando ? 'Editar producto' : 'Nuevo producto'}
               </h2>
               <form id="form-producto" onSubmit={guardar} className="flex flex-col gap-3">
@@ -229,12 +238,12 @@ export default function Stock() {
                     placeholder="Código de barras (opcional)"
                     value={codigoBarra}
                     onChange={(e) => setCodigoBarra(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                   />
                   <button
                     type="button"
                     onClick={() => setEscaneando(true)}
-                    className="border border-gray-300 rounded-lg px-3 text-gray-700 active:scale-95 transition flex items-center justify-center"
+                    className="border border-gray-300 rounded-lg px-3 text-gray-700 active:scale-95 transition flex items-center justify-center bg-white/95"
                     aria-label="Escanear código"
                   >
                     <IconoEscanear />
@@ -246,7 +255,7 @@ export default function Stock() {
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   required
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                 />
                 <input
                   type="number"
@@ -255,32 +264,32 @@ export default function Stock() {
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
                   required
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                 />
                 <input
                   type="number"
                   placeholder="Cantidad en stock"
                   value={stockActual}
                   onChange={(e) => setStockActual(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                 />
 
-                {mensaje && <p className="text-sm text-gray-600">{mensaje}</p>}
+                {mensaje && <p className="text-sm text-red-600 font-semibold">{mensaje}</p>}
               </form>
             </div>
 
-            <div className="flex gap-2 p-4 border-t border-gray-100">
+            <div className="flex gap-2 p-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => setMostrarForm(false)}
-                className="flex-1 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 active:scale-95 transition"
+                className="flex-1 border border-gray-300 rounded-lg py-2.5 text-sm font-bold text-gray-900 active:scale-95 transition bg-white/95"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 form="form-producto"
-                className="flex-1 bg-gray-900 text-white rounded-lg py-2.5 text-sm font-medium active:scale-95 transition"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 text-sm font-bold active:scale-95 transition shadow-md"
               >
                 Guardar
               </button>

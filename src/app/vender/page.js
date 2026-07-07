@@ -26,6 +26,7 @@ export default function Vender() {
   const [mensaje, setMensaje] = useState('')
   const [buscando, setBuscando] = useState(false)
   const [escaneando, setEscaneando] = useState(false)
+  const [tipoPago, setTipoPago] = useState('efectivo')
 
   async function buscarProducto(e) {
     e.preventDefault()
@@ -125,6 +126,7 @@ export default function Vender() {
             productoId: item.id,
             cantidad: item.cantidad,
           })),
+          tipoPago,
         }),
       })
 
@@ -135,7 +137,7 @@ export default function Vender() {
         return
       }
 
-      setMensaje(`Venta registrada: ${formatearMoneda(total)}`)
+      setMensaje(`Venta registrada: ${formatearMoneda(total)} (${tipoPago})`)
       setCarrito([])
     } catch (error) {
       setMensaje('Error al conectar con el servidor')
@@ -144,7 +146,7 @@ export default function Vender() {
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-semibold text-gray-900 mb-4">Vender</h1>
+      <h1 className="text-2xl font-bold text-white mb-4">Vender</h1>
 
       <form onSubmit={buscarProducto} className="flex gap-2 mb-2">
         <input
@@ -152,12 +154,12 @@ export default function Vender() {
           placeholder="Código de barras o nombre"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
         />
         <button
           type="submit"
           disabled={buscando}
-          className="bg-gray-900 text-white px-4 rounded-lg text-sm font-medium active:scale-95 transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg text-sm font-bold active:scale-95 transition"
         >
           Buscar
         </button>
@@ -165,7 +167,7 @@ export default function Vender() {
 
       <button
         onClick={() => setEscaneando(true)}
-        className="w-full mb-4 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 flex items-center justify-center gap-2 active:scale-95 transition"
+        className="w-full mb-4 bg-white/95 border border-gray-300 rounded-lg py-2.5 text-sm font-bold text-gray-900 flex items-center justify-center gap-2 active:scale-95 transition shadow-md"
       >
         <IconoEscanear />
         Escanear código de barras
@@ -184,10 +186,10 @@ export default function Vender() {
             <div
               key={producto.id}
               onClick={() => agregarAlCarrito(producto)}
-              className="bg-white border border-gray-200 rounded-xl p-3 text-sm cursor-pointer active:bg-gray-50 transition shadow-sm"
+              className="bg-white/95 border border-gray-300 rounded-xl p-3 text-sm cursor-pointer active:bg-blue-50 transition shadow-md hover:shadow-lg"
             >
-              <div className="font-medium text-gray-900">{producto.nombre}</div>
-              <div className="text-gray-500 text-xs">
+              <div className="font-bold text-gray-900">{producto.nombre}</div>
+              <div className="text-gray-700 text-xs font-semibold">
                 {formatearMoneda(producto.precio)} · stock: {producto.stockActual}
               </div>
             </div>
@@ -195,21 +197,21 @@ export default function Vender() {
         </div>
       )}
 
-      <h2 className="text-sm text-gray-500 mb-2">Carrito</h2>
+      <h2 className="text-sm font-bold text-white mb-2">Carrito</h2>
 
       {carrito.length === 0 && (
-        <p className="text-gray-400 text-sm mb-4">Todavía no agregaste productos</p>
+        <p className="text-white/70 text-sm mb-4">Todavía no agregaste productos</p>
       )}
 
       <div className="space-y-2 mb-4">
         {carrito.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm"
+            className="bg-white/95 border border-gray-300 rounded-xl p-3 flex items-center justify-between shadow-md"
           >
             <div>
-              <div className="text-sm font-medium text-gray-900">{item.nombre}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-sm font-bold text-gray-900">{item.nombre}</div>
+              <div className="text-xs text-gray-700 font-semibold">
                 {formatearMoneda(item.precio)} x {item.cantidad}
               </div>
             </div>
@@ -238,21 +240,49 @@ export default function Vender() {
         ))}
       </div>
 
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-gray-500 text-sm">Total</span>
-        <span className="text-2xl font-semibold text-gray-900">{formatearMoneda(total)}</span>
+      <div className="flex items-center justify-between mb-3 bg-white/95 rounded-lg p-3 shadow-md">
+        <span className="text-gray-700 text-sm font-bold">Total</span>
+        <span className="text-2xl font-bold text-blue-600">{formatearMoneda(total)}</span>
+      </div>
+
+      <div className="mb-3 bg-white/95 rounded-lg p-3 shadow-md">
+        <label className="text-sm font-bold text-gray-700 block mb-2">Tipo de pago</label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setTipoPago('efectivo')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+              tipoPago === 'efectivo'
+                ? 'bg-green-600 text-white shadow-md'
+                : 'bg-gray-200 text-gray-900'
+            }`}
+          >
+            💵 Efectivo
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipoPago('tarjeta')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+              tipoPago === 'tarjeta'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-200 text-gray-900'
+            }`}
+          >
+            💳 Tarjeta
+          </button>
+        </div>
       </div>
 
       <button
         onClick={confirmarVenta}
         disabled={carrito.length === 0}
-        className="w-full bg-gray-900 disabled:bg-gray-300 text-white rounded-lg py-3 font-medium active:scale-95 transition"
+        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg py-3 font-bold active:scale-95 transition shadow-lg"
       >
         Confirmar venta
       </button>
 
       {mensaje && (
-        <p className="mt-3 text-sm text-center text-gray-600">{mensaje}</p>
+        <p className="mt-3 text-sm text-center text-white/80 bg-white/10 rounded-lg p-2">{mensaje}</p>
       )}
     </div>
   )

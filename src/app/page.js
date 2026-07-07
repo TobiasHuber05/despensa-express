@@ -31,57 +31,57 @@ export default function Inicio() {
   }
 
   const hoy = new Date().toDateString()
-  const ventasHoy = ventas.filter((v) => new Date(v.fecha).toDateString() === hoy)
+  const ventasHoy = Array.isArray(ventas) ? ventas.filter((v) => new Date(v.fecha).toDateString() === hoy) : []
   const totalHoy = ventasHoy.reduce((acc, v) => acc + Number(v.total), 0)
   const promedioHoy = ventasHoy.length > 0 ? totalHoy / ventasHoy.length : 0
-  const stockBajo = productos.filter((p) => p.stockActual < 5)
+  const stockBajo = Array.isArray(productos) ? productos.filter((p) => p.stockActual < 5) : []
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <div className="flex items-start justify-between mb-1">
-        <h1 className="text-xl font-semibold text-gray-900">Despensa Express</h1>
+    <div className="max-w-md mx-auto p-4 space-y-4">
+      <div className="flex items-start justify-between mb-4 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+        <h1 className="text-2xl font-bold text-white">Despensa Express</h1>
         <button
           onClick={salir}
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg active:scale-95 transition"
+          className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg active:scale-95 transition"
         >
           Salir
         </button>
       </div>
-      <p className="text-sm text-gray-500 mb-4">Resumen de hoy</p>
+      <p className="text-sm text-white/80 mb-2 px-1">Resumen de hoy</p>
 
-      {cargando && <p className="text-gray-400 text-sm">Cargando...</p>}
+      {cargando && <p className="text-white/60 text-sm text-center py-4">Cargando...</p>}
 
       {!cargando && (
         <>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-              <div className="text-xs text-gray-500">Ventas hoy</div>
-              <div className="text-lg font-semibold text-gray-900">{formatearMoneda(totalHoy)}</div>
+            <div className="bg-gradient-to-br from-blue-500/80 to-blue-600/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-blue-400/30">
+              <div className="text-xs text-blue-100 font-medium">Ventas hoy</div>
+              <div className="text-lg font-bold text-white mt-1">{formatearMoneda(totalHoy)}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-              <div className="text-xs text-gray-500">Cant. de ventas</div>
-              <div className="text-lg font-semibold text-gray-900">{ventasHoy.length}</div>
+            <div className="bg-gradient-to-br from-purple-500/80 to-purple-600/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-purple-400/30">
+              <div className="text-xs text-purple-100 font-medium">Cant. de ventas</div>
+              <div className="text-lg font-bold text-white mt-1">{ventasHoy.length}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-              <div className="text-xs text-gray-500">Promedio por venta</div>
-              <div className="text-lg font-semibold text-gray-900">{formatearMoneda(promedioHoy)}</div>
+            <div className="bg-gradient-to-br from-emerald-500/80 to-emerald-600/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-emerald-400/30">
+              <div className="text-xs text-emerald-100 font-medium">Promedio por venta</div>
+              <div className="text-lg font-bold text-white mt-1">{formatearMoneda(promedioHoy)}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-              <div className="text-xs text-gray-500">Productos cargados</div>
-              <div className="text-lg font-semibold text-gray-900">{productos.length}</div>
+            <div className="bg-gradient-to-br from-orange-500/80 to-orange-600/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-orange-400/30">
+              <div className="text-xs text-orange-100 font-medium">Productos cargados</div>
+              <div className="text-lg font-bold text-white mt-1">{productos.length}</div>
             </div>
           </div>
 
           {stockBajo.length > 0 && (
             <Link href="/stock">
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-center justify-between">
+              <div className="bg-red-500/80 backdrop-blur-sm border border-red-300/50 rounded-xl p-4 mb-3 flex items-center justify-between shadow-lg active:scale-95 transition">
                 <div>
-                  <div className="text-sm font-medium text-red-700">
+                  <div className="text-sm font-bold text-white">
                     {stockBajo.length} producto{stockBajo.length > 1 ? 's' : ''} con stock bajo
                   </div>
-                  <div className="text-xs text-red-500">Tocá para ver y reponer</div>
+                  <div className="text-xs text-red-100 mt-1">Tocá para ver y reponer</div>
                 </div>
-                <span className="text-red-500">→</span>
+                <span className="text-white text-xl">→</span>
               </div>
             </Link>
           )}
@@ -89,15 +89,15 @@ export default function Inicio() {
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/vender"
-              className="bg-gray-900 text-white rounded-xl py-4 text-center font-medium text-sm active:scale-95 transition"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl py-4 text-center font-bold text-sm active:scale-95 transition shadow-lg border border-blue-500/50"
             >
-              Vender
+              🛒 Vender
             </Link>
             <Link
               href="/stock"
-              className="bg-white border border-gray-300 text-gray-900 rounded-xl py-4 text-center font-medium text-sm active:scale-95 transition"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl py-4 text-center font-bold text-sm active:scale-95 transition shadow-lg border border-emerald-500/50"
             >
-              Ver stock
+              📦 Ver stock
             </Link>
           </div>
         </>

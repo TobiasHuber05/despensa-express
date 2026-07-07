@@ -53,19 +53,23 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-gray-900/70 backdrop-blur-sm border-t border-gray-700 flex z-50 shadow-2xl">
       {tabs.map((tab) => {
         const activo = pathname === tab.href
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`flex-1 flex flex-col items-center gap-1 py-2 ${
-              activo ? 'text-blue-600' : 'text-gray-400'
+            className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-2 transition-all ${
+              activo 
+                ? 'text-blue-400 scale-110' 
+                : 'text-gray-300 hover:text-gray-100'
             }`}
           >
-            {tab.icon}
-            <span className="text-xs">{tab.label}</span>
+            <span className={`flex items-center justify-center ${activo ? 'scale-125' : ''}`}>
+              {tab.icon}
+            </span>
+            <span className="text-xs font-semibold">{tab.label}</span>
           </Link>
         )
       })}

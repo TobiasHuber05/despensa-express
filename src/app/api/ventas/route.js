@@ -2,14 +2,18 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 // POST: registrar una venta
-// Body esperado: { items: [{ productoId: 1, cantidad: 2 }, { productoId: 3, cantidad: 1 }] }
+// Body esperado: { items: [{ productoId: 1, cantidad: 2 }], tipoPago: "efectivo" }
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { items } = body
+    const { items, tipoPago = 'efectivo' } = body
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'La venta no tiene productos' }, { status: 400 })
+    }
+
+    if (!['efectivo', 'tarjeta'].includes(tipoPago)) {
+      return NextResponse.json({ error: 'Tipo de pago inválido' }, { status: 400 })
     }
 
     // Usamos una transacción: o se hace todo (venta + descuento de stock), o no se hace nada
@@ -50,6 +54,7 @@ export async function POST(request) {
       const venta = await tx.venta.create({
         data: {
           total,
+          tipoPago: tipoPago || 'efectivo',
           detalles: {
             create: detallesData,
           },
@@ -66,7 +71,7 @@ export async function POST(request) {
   }
 }
 
-// GET: listar ventas (para reportes después)
+// GET: listar ventas completadas (para reportes después)
 export async function GET() {
   try {
     const ventas = await prisma.venta.findMany({

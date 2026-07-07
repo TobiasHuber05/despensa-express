@@ -24,8 +24,20 @@ model Venta {
   id      Int      @id @default(autoincrement())
   fecha   DateTime @default(now())
   total   Decimal  @db.Decimal(10, 2)
+  tipoPago String  @default("efectivo") // "efectivo" o "tarjeta"
+  estado  String  @default("completada") // "completada" o "anulada"
 
   detalles DetalleVenta[]
+}
+
+model CierreCaja {
+  id              Int      @id @default(autoincrement())
+  fecha           DateTime @default(now())
+  totalEfectivo   Decimal  @db.Decimal(10, 2) @default(0)
+  totalTarjeta    Decimal  @db.Decimal(10, 2) @default(0)
+  totalVentas     Decimal  @db.Decimal(10, 2) @default(0)
+  cantidad        Int      @default(0)
+  createdAt       DateTime @default(now())
 }
 
 model DetalleVenta {
