@@ -4,22 +4,31 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 export default function ImportarProductos() {
-  const [archivo, setArchivo] = useState(null)
+  const [archivo, setArchivo] = useState<any>(null)
   const [cargando, setCargando] = useState(false)
-  const [resultado, setResultado] = useState(null)
+  const [resultado, setResultado] = useState<any>(null)
   const [mensaje, setMensaje] = useState('')
 
   async function descargarPlantilla() {
-    const res = await fetch('/api/productos/importar')
-    const blob = await res.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'plantilla_productos.csv'
-    a.click()
+    try {
+      const res = await fetch('/api/productos/importar')
+      if (!res.ok) {
+        setMensaje('Error al descargar la plantilla')
+        return
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'plantilla_productos.csv'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+    } catch {
+      setMensaje('Error al descargar la plantilla')
+    }
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     if (!archivo) {
@@ -51,7 +60,7 @@ export default function ImportarProductos() {
           }`
         )
       }
-    } catch (error) {
+    } catch {
       setMensaje('Error al conectar con el servidor')
     } finally {
       setCargando(false)
@@ -125,7 +134,7 @@ export default function ImportarProductos() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <h3 className="text-sm font-bold text-red-700 mb-2">Errores encontrados:</h3>
           <div className="space-y-1">
-            {resultado.errores.slice(0, 5).map((error, i) => (
+            {resultado.errores.slice(0, 5).map((error: any, i: number) => (
               <div key={i} className="text-xs text-red-600">
                 Línea {error.linea}: {error.error}
               </div>

@@ -28,7 +28,7 @@ export default function Vender() {
   const [escaneando, setEscaneando] = useState(false)
   const [tipoPago, setTipoPago] = useState('efectivo')
 
-  async function buscarProducto(e) {
+  async function buscarProducto(e: React.FormEvent) {
     e.preventDefault()
     if (!busqueda.trim()) return
 
@@ -42,7 +42,12 @@ export default function Vender() {
         : `/api/productos?nombre=${busqueda.trim()}`
 
       const res = await fetch(url)
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        data = {}
+      }
 
       if (!res.ok) {
         setResultados([])
@@ -54,36 +59,41 @@ export default function Vender() {
           setResultados(data)
         }
       }
-    } catch (error) {
-      setMensaje('Error al buscar producto')
+    } catch {
+      setMensaje('Error de red: no se pudo conectar al servidor')
     } finally {
       setBuscando(false)
     }
   }
 
-  async function buscarPorCodigoDetectado(codigo) {
+  async function buscarPorCodigoDetectado(codigo: string) {
     setEscaneando(false)
     setMensaje('')
 
     try {
       const res = await fetch(`/api/productos?codigo=${codigo}`)
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        data = {}
+      }
 
       if (!res.ok) {
         setMensaje(data.error || 'Producto no encontrado')
       } else {
         agregarAlCarrito(data)
       }
-    } catch (error) {
-      setMensaje('Error al buscar producto')
+    } catch {
+      setMensaje('Error de red: no se pudo conectar al servidor')
     }
   }
 
-  function agregarAlCarrito(producto) {
-    setCarrito((prev) => {
-      const existe = prev.find((item) => item.id === producto.id)
+  function agregarAlCarrito(producto: any) {
+    setCarrito((prev: any[]) => {
+      const existe = prev.find((item: any) => item.id === producto.id)
       if (existe) {
-        return prev.map((item) =>
+        return prev.map((item: any) =>
           item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
         )
       }
@@ -93,22 +103,22 @@ export default function Vender() {
     setBusqueda('')
   }
 
-  function cambiarCantidad(id, delta) {
-    setCarrito((prev) =>
+  function cambiarCantidad(id: number, delta: number) {
+    setCarrito((prev: any[]) =>
       prev
-        .map((item) =>
+        .map((item: any) =>
           item.id === id ? { ...item, cantidad: item.cantidad + delta } : item
         )
-        .filter((item) => item.cantidad > 0)
+        .filter((item: any) => item.cantidad > 0)
     )
   }
 
-  function quitarDelCarrito(id) {
-    setCarrito((prev) => prev.filter((item) => item.id !== id))
+  function quitarDelCarrito(id: number) {
+    setCarrito((prev: any[]) => prev.filter((item: any) => item.id !== id))
   }
 
   const total = carrito.reduce(
-    (acc, item) => acc + Number(item.precio) * item.cantidad,
+    (acc: number, item: any) => acc + Number(item.precio) * item.cantidad,
     0
   )
 
@@ -122,7 +132,7 @@ export default function Vender() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: carrito.map((item) => ({
+          items: carrito.map((item: any) => ({
             productoId: item.id,
             cantidad: item.cantidad,
           })),
@@ -139,8 +149,8 @@ export default function Vender() {
 
       setMensaje(`Venta registrada: ${formatearMoneda(total)} (${tipoPago})`)
       setCarrito([])
-    } catch (error) {
-      setMensaje('Error al conectar con el servidor')
+    } catch {
+      setMensaje('Error de red: no se pudo conectar al servidor')
     }
   }
 
@@ -182,7 +192,7 @@ export default function Vender() {
 
       {resultados.length > 0 && (
         <div className="mb-4 space-y-2">
-          {resultados.map((producto) => (
+          {resultados.map((producto: any) => (
             <div
               key={producto.id}
               onClick={() => agregarAlCarrito(producto)}
@@ -204,7 +214,7 @@ export default function Vender() {
       )}
 
       <div className="space-y-2 mb-4">
-        {carrito.map((item) => (
+        {carrito.map((item: any) => (
           <div
             key={item.id}
             className="bg-white/95 border border-gray-300 rounded-xl p-3 flex items-center justify-between shadow-md"

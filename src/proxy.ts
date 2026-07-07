@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export function middleware(request) {
+export function proxy(request: NextRequest) {
   const auth = request.cookies.get('auth')?.value
   const { pathname } = request.nextUrl
 
@@ -12,6 +13,11 @@ export function middleware(request) {
 
   if (esRutaPublica) {
     return NextResponse.next()
+  }
+
+  if (!process.env.APP_PIN) {
+    console.error('APP_PIN no está configurado')
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (auth !== process.env.APP_PIN) {

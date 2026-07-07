@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 // GET: buscar productos activos por código de barras o por nombre
-export async function GET(request) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url)
   const codigo = searchParams.get('codigo')
   const nombre = searchParams.get('nombre')
@@ -33,13 +34,13 @@ export async function GET(request) {
       orderBy: { nombre: 'asc' },
     })
     return NextResponse.json(productos)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al buscar productos' }, { status: 500 })
   }
 }
 
 // POST: crear un producto nuevo
-export async function POST(request) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()
     const { codigoBarra, nombre, precio, stockActual } = body
@@ -61,7 +62,7 @@ export async function POST(request) {
     })
 
     return NextResponse.json(producto, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'Ya existe un producto con ese código de barras' },

@@ -1,5 +1,6 @@
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const metadata = {
   title: "Despensa Express",
@@ -16,7 +17,7 @@ export const viewport = {
   themeColor: "#111827",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <body className="min-h-screen pb-20 bg-transparent">
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
           {children}
         </div>
         <BottomNav />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

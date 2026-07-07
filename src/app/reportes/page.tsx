@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
 
 const MESES = [
@@ -16,7 +17,7 @@ export default function Reportes() {
     const hoy = new Date()
     return { anio: hoy.getFullYear(), mes: hoy.getMonth() }
   })
-  const [diaSeleccionado, setDiaSeleccionado] = useState(null)
+  const [diaSeleccionado, setDiaSeleccionado] = useState<any>(null)
 
   useEffect(() => {
     async function cargar() {
@@ -28,19 +29,19 @@ export default function Reportes() {
     cargar()
   }, [])
 
-  const gruposPorDia = {}
-  ventas.forEach((venta) => {
+  const gruposPorDia: Record<string, any[]> = {}
+  ventas.forEach((venta: any) => {
     const fecha = new Date(venta.fecha)
     const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
     if (!gruposPorDia[clave]) gruposPorDia[clave] = []
     gruposPorDia[clave].push(venta)
   })
 
-  function totalDelDia(ventasDelDia) {
-    return ventasDelDia.reduce((acc, v) => acc + Number(v.total), 0)
+  function totalDelDia(ventasDelDia: any[]) {
+    return ventasDelDia.reduce((acc: number, v: any) => acc + Number(v.total), 0)
   }
 
-  async function deshacerVenta(ventaId) {
+  async function deshacerVenta(ventaId: number) {
     if (!confirm('¿Estás seguro de que querés deshacer esta venta?')) return
 
     try {
@@ -55,12 +56,12 @@ export default function Reportes() {
         const error = await res.json()
         alert(`Error: ${error.error}`)
       }
-    } catch (error) {
+    } catch {
       alert('Error al anular venta')
     }
   }
 
-  function exportarReporte(tipo = 'dia') {
+  function exportarReporte(tipo: string = 'dia') {
     let url = '/api/reportes/export?'
 
     if (tipo === 'dia' && diaSeleccionado) {
@@ -76,15 +77,15 @@ export default function Reportes() {
   const cantidadDias = new Date(mesActual.anio, mesActual.mes + 1, 0).getDate()
   const primerDiaSemana = (primerDiaDelMes.getDay() + 6) % 7
 
-  const celdas = []
+  const celdas: (number | null)[] = []
   for (let i = 0; i < primerDiaSemana; i++) celdas.push(null)
   for (let dia = 1; dia <= cantidadDias; dia++) celdas.push(dia)
 
-  function claveDelDia(dia) {
+  function claveDelDia(dia: number) {
     return `${mesActual.anio}-${String(mesActual.mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
   }
 
-  function cambiarMes(delta) {
+  function cambiarMes(delta: number) {
     setMesActual((prev) => {
       let mes = prev.mes + delta
       let anio = prev.anio
@@ -100,16 +101,16 @@ export default function Reportes() {
   }
 
   const hoy = new Date()
-  const esHoy = (dia) =>
+  const esHoy = (dia: number) =>
     dia === hoy.getDate() && mesActual.mes === hoy.getMonth() && mesActual.anio === hoy.getFullYear()
 
   const ventasDelDiaSeleccionado = diaSeleccionado ? gruposPorDia[diaSeleccionado] || [] : []
 
-  function formatearHora(fechaIso) {
+  function formatearHora(fechaIso: string) {
     return new Date(fechaIso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
   }
 
-  function formatearFechaLarga(clave) {
+  function formatearFechaLarga(clave: string) {
     const [anio, mes, dia] = clave.split('-').map(Number)
     const fecha = new Date(anio, mes - 1, dia)
     return fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -119,7 +120,7 @@ export default function Reportes() {
     <div className="max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold text-white mb-4">Reportes</h1>
 
-      {cargando && <p className="text-white/70 text-sm">Cargando...</p>}
+      {cargando && <Spinner texto="Cargando reportes..." />}
 
       {!cargando && (
         <div className="space-y-3">
@@ -225,8 +226,8 @@ export default function Reportes() {
                   <div className="space-y-2">
                     {ventasDelDiaSeleccionado
                       .slice()
-                      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-                      .map((venta) => (
+                      .sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+                      .map((venta: any) => (
                         <div key={venta.id} className="bg-white border border-gray-300 rounded-lg p-3 shadow-sm">
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-xs font-semibold text-gray-700">{formatearHora(venta.fecha)}</span>
@@ -246,7 +247,7 @@ export default function Reportes() {
                             </div>
                           </div>
                           <div className="text-xs font-semibold text-gray-700">
-                            {venta.detalles.map((d) => `${d.producto.nombre} x${d.cantidad}`).join(', ')}
+                            {(venta.detalles || []).map((d: any) => `${d.producto?.nombre || '?'} x${d.cantidad}`).join(', ')}
                           </div>
                         </div>
                       ))}

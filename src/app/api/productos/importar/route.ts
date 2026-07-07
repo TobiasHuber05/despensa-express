@@ -1,10 +1,16 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { parse } from 'csv-parse/sync'
+
+function procesarValor(valor: any) {
+  if (typeof valor !== 'string') return valor
+  return valor.trim()
+}
 
 // POST: cargar productos desde CSV
 // Espera un FormData con un archivo CSV
 // Formato del CSV: codigo,nombre,precio,stock
-export async function POST(request) {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const formData = await request.formData()
     const archivo = formData.get('archivo')
@@ -13,33 +19,43 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No se envió archivo' }, { status: 400 })
     }
 
-    const contenido = await archivo.text()
-    const lineas = contenido.split('\n').filter((linea) => linea.trim())
+    const contenido = await (archivo as Blob).text()
 
-    if (lineas.length === 0) {
-      return NextResponse.json({ error: 'El archivo está vacío' }, { status: 400 })
+    let registros: any[]
+    try {
+      registros = parse(contenido, {
+        columns: ['codigo', 'nombre', 'precio', 'stock'],
+        skip_empty_lines: true,
+        from_line: 2,
+        bom: true,
+        relaxColumnCount: true,
+      })
+    } catch (parseError: any) {
+      return NextResponse.json({ error: `Error al parsear CSV: ${parseError.message}` }, { status: 400 })
+    }
+
+    if (registros.length === 0) {
+      return NextResponse.json({ error: 'El archivo está vacío o no tiene datos después del encabezado' }, { status: 400 })
     }
 
     const resultados = {
       exitosas: 0,
-      errores: [],
+      errores: [] as { linea: number; error: string }[],
     }
 
-    // Procesar cada línea (saltar header si existe)
-    for (let i = 0; i < lineas.length; i++) {
-      const linea = lineas[i]
-
-      // Saltar si parece ser header
-      if (i === 0 && linea.toLowerCase().includes('codigo')) {
-        continue
-      }
+    for (let i = 0; i < registros.length; i++) {
+      const row = registros[i]
+      const lineaNum = i + 2
 
       try {
-        const [codigo, nombre, precioStr, stockStr] = linea.split(',').map((v) => v.trim())
+        const codigo = procesarValor(row.codigo)
+        const nombre = procesarValor(row.nombre)
+        const precioStr = procesarValor(row.precio)
+        const stockStr = procesarValor(row.stock)
 
         if (!nombre || !precioStr) {
           resultados.errores.push({
-            linea: i + 1,
+            linea: lineaNum,
             error: 'Nombre y precio son obligatorios',
           })
           continue
@@ -50,20 +66,18 @@ export async function POST(request) {
 
         if (isNaN(precio) || precio < 0) {
           resultados.errores.push({
-            linea: i + 1,
+            linea: lineaNum,
             error: 'Precio inválido',
           })
           continue
         }
 
-        // Verificar si ya existe producto con ese código
         if (codigo) {
           const existe = await prisma.producto.findFirst({
             where: { codigoBarra: codigo },
           })
 
           if (existe) {
-            // Actualizar producto existente
             await prisma.producto.update({
               where: { id: existe.id },
               data: { nombre, precio, stockActual: stock },
@@ -73,7 +87,6 @@ export async function POST(request) {
           }
         }
 
-        // Crear nuevo producto
         await prisma.producto.create({
           data: {
             codigoBarra: codigo || null,
@@ -84,10 +97,10 @@ export async function POST(request) {
         })
 
         resultados.exitosas++
-      } catch (error) {
+      } catch {
         resultados.errores.push({
-          linea: i + 1,
-          error: error.message,
+          linea: lineaNum,
+          error: 'Error al procesar línea',
         })
       }
     }
@@ -100,7 +113,7 @@ export async function POST(request) {
 }
 
 // GET: descargar plantilla CSV
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   const plantilla = `codigo,nombre,precio,stock
 123456,Pan integral,2.50,50
 234567,Leche descremada,3.00,30

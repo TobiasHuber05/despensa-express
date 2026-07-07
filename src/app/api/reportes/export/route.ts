@@ -1,40 +1,41 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 // GET: exportar reportes en CSV
 // ?fecha=2026-07-06 para día específico
 // ?mes=7&anio=2026 para mes específico
-export async function GET(request) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url)
     const fecha = searchParams.get('fecha')
     const mes = searchParams.get('mes')
     const anio = searchParams.get('anio')
 
-    let whereClause = {}
+    let whereClause: any = {}
     let titulo = 'Reporte de Ventas'
 
     if (fecha) {
-      // Reporte de día específico
-      const [year, month, day] = fecha.split('-')
-      const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
-      const fechaFin = new Date(year, month - 1, day, 23, 59, 59)
+      const [year, month, day] = fecha.split('-').map(Number)
+      const fechaInicio = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0))
+      const fechaFin = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0))
 
       whereClause.fecha = {
         gte: fechaInicio,
-        lte: fechaFin,
+        lt: fechaFin,
       }
       titulo = `Reporte de Ventas - ${fecha}`
     } else if (mes && anio) {
-      // Reporte de mes específico
-      const fechaInicio = new Date(anio, mes - 1, 1, 0, 0, 0)
-      const fechaFin = new Date(anio, mes, 0, 23, 59, 59)
+      const year = Number(anio)
+      const month = Number(mes)
+      const fechaInicio = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0))
+      const fechaFin = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0))
 
       whereClause.fecha = {
         gte: fechaInicio,
-        lte: fechaFin,
+        lt: fechaFin,
       }
-      titulo = `Reporte de Ventas - ${mes}/${anio}`
+      titulo = `Reporte de Ventas - ${month}/${year}`
     }
 
     const ventas = await prisma.venta.findMany({

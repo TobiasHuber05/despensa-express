@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 // POST: registrar una venta
 // Body esperado: { items: [{ productoId: 1, cantidad: 2 }], tipoPago: "efectivo" }
-export async function POST(request) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()
     const { items, tipoPago = 'efectivo' } = body
@@ -19,7 +20,7 @@ export async function POST(request) {
     // Usamos una transacción: o se hace todo (venta + descuento de stock), o no se hace nada
     const resultado = await prisma.$transaction(async (tx) => {
       let total = 0
-      const detallesData = []
+      const detallesData: { productoId: number; cantidad: number; precioUnitario: any }[] = []
 
       for (const item of items) {
         const producto = await tx.producto.findUnique({
@@ -66,20 +67,20 @@ export async function POST(request) {
     })
 
     return NextResponse.json(resultado, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Error al registrar venta' }, { status: 400 })
   }
 }
 
 // GET: listar ventas completadas (para reportes después)
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     const ventas = await prisma.venta.findMany({
       orderBy: { fecha: 'desc' },
       include: { detalles: { include: { producto: true } } },
     })
     return NextResponse.json(ventas)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al obtener ventas' }, { status: 500 })
   }
 }

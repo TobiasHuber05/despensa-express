@@ -1,4 +1,4 @@
-export function formatearMoneda(valor) {
+export function formatearMoneda(valor: number | string) {
   const numero = Number(valor)
   return numero.toLocaleString('es-AR', {
     style: 'currency',

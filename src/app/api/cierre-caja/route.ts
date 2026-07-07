@@ -1,29 +1,28 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 // GET: obtener cierres de caja
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     const cierres = await prisma.cierreCaja.findMany({
       orderBy: { fecha: 'desc' },
     })
     return NextResponse.json(cierres)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al obtener cierres' }, { status: 500 })
   }
 }
 
 // POST: crear cierre de caja del día actual
-export async function POST(request) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()
     const { montoEfectivo } = body
 
-    // Obtener hoy
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    const mañana = new Date(hoy)
-    mañana.setDate(mañana.getDate() + 1)
+    const ahora = new Date()
+    const hoy = new Date(Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0, 0))
+    const mañana = new Date(Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1, 0, 0, 0, 0))
 
     // Verificar si ya existe cierre de hoy
     const cierrExistente = await prisma.cierreCaja.findFirst({

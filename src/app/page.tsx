@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
 
 export default function Inicio() {
@@ -12,29 +13,46 @@ export default function Inicio() {
   const router = useRouter()
 
   useEffect(() => {
+    let montado = true
     async function cargar() {
-      const [resProductos, resVentas] = await Promise.all([
-        fetch('/api/productos'),
-        fetch('/api/ventas'),
-      ])
-      setProductos(await resProductos.json())
-      setVentas(await resVentas.json())
-      setCargando(false)
+      try {
+        const [resProductos, resVentas] = await Promise.all([
+          fetch('/api/productos'),
+          fetch('/api/ventas'),
+        ])
+        if (!montado) return
+        let prodData, ventData
+        try { prodData = await resProductos.json() } catch { prodData = [] }
+        try { ventData = await resVentas.json() } catch { ventData = [] }
+        setProductos(Array.isArray(prodData) ? prodData : [])
+        setVentas(Array.isArray(ventData) ? ventData : [])
+      } catch {
+        if (montado) {
+          setProductos([])
+          setVentas([])
+        }
+      } finally {
+        if (montado) setCargando(false)
+      }
     }
     cargar()
+    return () => { montado = false }
   }, [])
 
   async function salir() {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // el logout sigue aunque falle la red
+    }
     router.push('/login')
-    router.refresh()
   }
 
   const hoy = new Date().toDateString()
-  const ventasHoy = Array.isArray(ventas) ? ventas.filter((v) => new Date(v.fecha).toDateString() === hoy) : []
-  const totalHoy = ventasHoy.reduce((acc, v) => acc + Number(v.total), 0)
+  const ventasHoy = Array.isArray(ventas) ? ventas.filter((v: any) => new Date(v.fecha).toDateString() === hoy) : []
+  const totalHoy = ventasHoy.reduce((acc: number, v: any) => acc + Number(v.total), 0)
   const promedioHoy = ventasHoy.length > 0 ? totalHoy / ventasHoy.length : 0
-  const stockBajo = Array.isArray(productos) ? productos.filter((p) => p.stockActual < 5) : []
+  const stockBajo = Array.isArray(productos) ? productos.filter((p: any) => p.stockActual < 5) : []
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
@@ -49,7 +67,7 @@ export default function Inicio() {
       </div>
       <p className="text-sm text-white/80 mb-2 px-1">Resumen de hoy</p>
 
-      {cargando && <p className="text-white/60 text-sm text-center py-4">Cargando...</p>}
+      {cargando && <Spinner texto="Cargando resumen..." />}
 
       {!cargando && (
         <>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
 
 export default function CierreCaja() {
@@ -12,16 +13,23 @@ export default function CierreCaja() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   useEffect(() => {
+    let montado = true
     async function cargar() {
-      const res = await fetch('/api/cierre-caja')
-      const data = await res.json()
-      setCierres(Array.isArray(data) ? data : [])
-      setCargando(false)
+      try {
+        const res = await fetch('/api/cierre-caja')
+        const data = await res.json()
+        if (montado) setCierres(Array.isArray(data) ? data : [])
+      } catch {
+        if (montado) setCierres([])
+      } finally {
+        if (montado) setCargando(false)
+      }
     }
     cargar()
+    return () => { montado = false }
   }, [])
 
-  async function realizarCierre(e) {
+  async function realizarCierre(e: React.FormEvent) {
     e.preventDefault()
     setMensaje('Creando cierre de caja...')
 
@@ -45,11 +53,14 @@ export default function CierreCaja() {
       setMontoEfectivo('')
       setMostrarFormulario(false)
 
-      // Recargar cierres
-      const resCierres = await fetch('/api/cierre-caja')
-      const nuevosCierres = await resCierres.json()
-      setCierres(Array.isArray(nuevosCierres) ? nuevosCierres : [])
-    } catch (error) {
+      try {
+        const resCierres = await fetch('/api/cierre-caja')
+        const nuevosCierres = await resCierres.json()
+        setCierres(Array.isArray(nuevosCierres) ? nuevosCierres : [])
+      } catch {
+        // fallback silencioso: los cierres se recargan con el próximo useEffect
+      }
+    } catch {
       setMensaje('Error al crear cierre de caja')
     }
   }
@@ -119,7 +130,7 @@ export default function CierreCaja() {
         </div>
       )}
 
-      {cargando && <p className="text-white/70 text-sm">Cargando...</p>}
+      {cargando && <Spinner texto="Cargando cierres..." />}
 
       {!cargando && cierres.length === 0 && (
         <p className="text-white/70 text-sm text-center">No hay cierres de caja registrados</p>
@@ -127,7 +138,7 @@ export default function CierreCaja() {
 
       <h2 className="text-sm font-bold text-white mb-2 mt-4">Histórico de cierres</h2>
       <div className="space-y-2">
-        {cierres.map((cierre) => {
+        {cierres.map((cierre: any) => {
           const fecha = new Date(cierre.fecha)
           const fechaStr = fecha.toLocaleDateString('es-AR')
 

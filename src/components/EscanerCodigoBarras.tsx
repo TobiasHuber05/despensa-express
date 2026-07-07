@@ -3,11 +3,21 @@
 import { useEffect, useRef } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 
-export default function EscanerCodigoBarras({ onDetectado, onCerrar }) {
-  const scannerRef = useRef(null)
+interface EscanerCodigoBarrasProps {
+  onDetectado: (codigo: string) => void
+  onCerrar: () => void
+}
+
+export default function EscanerCodigoBarras({ onDetectado, onCerrar }: EscanerCodigoBarrasProps) {
+  const scannerRef = useRef<Html5Qrcode | null>(null)
   const corriendoRef = useRef(false)
   const detectadoRef = useRef(false)
+  const onDetectadoRef = useRef(onDetectado)
   const contenedorId = 'lector-codigo-barras'
+
+  useEffect(() => {
+    onDetectadoRef.current = onDetectado
+  })
 
   useEffect(() => {
     const scanner = new Html5Qrcode(contenedorId)
@@ -21,11 +31,9 @@ export default function EscanerCodigoBarras({ onDetectado, onCerrar }) {
         (textoDecodificado) => {
           if (detectadoRef.current) return
           detectadoRef.current = true
-          onDetectado(textoDecodificado)
+          onDetectadoRef.current(textoDecodificado)
         },
-        () => {
-          // Se llama constantemente cuando NO detecta nada, no hace falta hacer nada acá
-        }
+        () => {}
       )
       .then(() => {
         corriendoRef.current = true

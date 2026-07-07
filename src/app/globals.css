@@ -30,6 +30,7 @@ body::before {
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  background-color: #1f2937;
   z-index: -2;
 }
 

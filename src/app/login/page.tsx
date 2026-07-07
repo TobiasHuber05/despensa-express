@@ -8,7 +8,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
 

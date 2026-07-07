@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
+import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
 import Link from 'next/link'
 
@@ -23,7 +24,7 @@ function IconoEscanear() {
 export default function Stock() {
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [editando, setEditando] = useState(null)
+  const [editando, setEditando] = useState<any>(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [escaneando, setEscaneando] = useState(false)
   const [reposicionAbierta, setReposicionAbierta] = useState(false)
@@ -35,16 +36,29 @@ export default function Stock() {
   const [stockActual, setStockActual] = useState('')
   const [mensaje, setMensaje] = useState('')
 
+  const montado = useRef(true)
+
   async function cargarProductos() {
-    setCargando(true)
-    const res = await fetch('/api/productos')
-    const data = await res.json()
-    setProductos(Array.isArray(data) ? data : [])
-    setCargando(false)
+    try {
+      setCargando(true)
+      const res = await fetch('/api/productos')
+      const data = await res.json()
+      if (!montado.current) return
+      setProductos(Array.isArray(data) ? data : [])
+    } catch {
+      if (montado.current) setProductos([])
+    } finally {
+      if (montado.current) setCargando(false)
+    }
   }
 
   useEffect(() => {
-    cargarProductos()
+    montado.current = true
+    const timer = setTimeout(() => cargarProductos(), 0)
+    return () => {
+      montado.current = false
+      clearTimeout(timer)
+    }
   }, [])
 
   function abrirNuevo() {
@@ -57,7 +71,7 @@ export default function Stock() {
     setMostrarForm(true)
   }
 
-  function abrirEdicion(producto) {
+  function abrirEdicion(producto: any) {
     setEditando(producto)
     setCodigoBarra(producto.codigoBarra || '')
     setNombre(producto.nombre)
@@ -67,12 +81,12 @@ export default function Stock() {
     setMostrarForm(true)
   }
 
-  function onCodigoEscaneado(codigo) {
+  function onCodigoEscaneado(codigo: string) {
     setEscaneando(false)
     setCodigoBarra(codigo)
   }
 
-  async function guardar(e) {
+  async function guardar(e: React.FormEvent) {
     e.preventDefault()
     setMensaje('Guardando...')
 
@@ -105,23 +119,23 @@ export default function Stock() {
 
       setMostrarForm(false)
       cargarProductos()
-    } catch (error) {
+    } catch {
       setMensaje('Error al conectar con el servidor')
     }
   }
 
-  async function desactivar(id) {
+  async function desactivar(id: number) {
     if (!confirm('¿Sacar este producto de la lista de stock? (no se pierde el historial de ventas)')) return
     await fetch(`/api/productos/${id}`, { method: 'DELETE' })
     cargarProductos()
   }
 
-  const stockBajo = productos.filter((p) => p.stockActual < 5)
+  const stockBajo = productos.filter((p: any) => p.stockActual < 5)
 
   // Filtro de búsqueda (por nombre o código de barra, insensible a mayúsculas)
   const productosFiltrados = busqueda.trim()
     ? productos.filter(
-        (p) =>
+        (p: any) =>
           p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
           (p.codigoBarra && p.codigoBarra.includes(busqueda))
       )
@@ -170,7 +184,7 @@ export default function Stock() {
       {stockBajo.length > 0 && !busqueda && (
         <div className="mb-4 bg-white/95 border border-red-300 rounded-xl overflow-hidden shadow-md">
           <button
-            onClick={() => setReposicionAbierta((v) => !v)}
+            onClick={() => setReposicionAbierta((v: boolean) => !v)}
             className="w-full flex items-center justify-between p-3"
           >
             <span className="text-sm font-bold text-red-700">
@@ -181,7 +195,7 @@ export default function Stock() {
 
           {reposicionAbierta && (
             <div className="border-t border-red-200 p-3 space-y-2 bg-red-50">
-              {stockBajo.map((producto) => (
+              {stockBajo.map((producto: any) => (
                 <div
                   key={producto.id}
                   className="bg-white border border-red-300 rounded-lg p-3 flex items-center justify-between shadow-sm"
@@ -205,7 +219,7 @@ export default function Stock() {
         </div>
       )}
 
-      {cargando && <p className="text-white/70 text-sm">Cargando...</p>}
+      {cargando && <Spinner texto="Cargando productos..." />}
 
       {!cargando && productosFiltrados.length === 0 && (
         <p className="text-white/70 text-sm text-center py-6">
@@ -222,7 +236,7 @@ export default function Stock() {
       )}
 
       <div className="space-y-2">
-        {productosFiltrados.map((producto) => (
+        {productosFiltrados.map((producto: any) => (
           <div
             key={producto.id}
             className="bg-white/95 border border-gray-300 rounded-xl p-3 flex items-center justify-between shadow-md"

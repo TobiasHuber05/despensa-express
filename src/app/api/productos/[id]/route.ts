@@ -1,8 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 // PUT: editar un producto
-export async function PUT(request, { params }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   const { id } = await params
 
   try {
@@ -15,7 +19,7 @@ export async function PUT(request, { params }) {
     })
 
     return NextResponse.json(producto)
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'Ya existe otro producto con ese código de barras' },
@@ -27,7 +31,10 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE: desactivar un producto (no se borra, para no romper el historial de ventas)
-export async function DELETE(request, { params }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   const { id } = await params
 
   try {
@@ -36,7 +43,7 @@ export async function DELETE(request, { params }) {
       data: { activo: false },
     })
     return NextResponse.json({ ok: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al desactivar producto' }, { status: 500 })
   }
 }
