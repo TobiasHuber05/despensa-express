@@ -42,7 +42,7 @@ export default function Inicio() {
         <h1 className="text-xl font-semibold text-gray-900">Despensa Express</h1>
         <button
           onClick={salir}
-          className="text-xs text-gray-400 border border-gray-200 rounded-lg px-2 py-1 active:scale-95 transition"
+          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg active:scale-95 transition"
         >
           Salir
         </button>

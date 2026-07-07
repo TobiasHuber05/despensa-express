@@ -19,7 +19,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body className="bg-gray-50 min-h-screen pb-16">
+      <body className="min-h-screen pb-16">
         {children}
         <BottomNav />
       </body>

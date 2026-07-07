@@ -25,6 +25,7 @@ export default function Stock() {
   const [editando, setEditando] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [escaneando, setEscaneando] = useState(false)
+  const [reposicionAbierta, setReposicionAbierta] = useState(false)
 
   const [codigoBarra, setCodigoBarra] = useState('')
   const [nombre, setNombre] = useState('')
@@ -128,31 +129,40 @@ export default function Stock() {
       </div>
 
       {stockBajo.length > 0 && (
-        <div className="mb-4">
-          <h2 className="text-sm font-medium text-red-600 mb-2">
-            Reposición urgente ({stockBajo.length})
-          </h2>
-          <div className="space-y-2">
-            {stockBajo.map((producto) => (
-              <div
-                key={producto.id}
-                className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center justify-between"
-              >
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{producto.nombre}</div>
-                  <div className="text-xs text-red-600">
-                    Quedan {producto.stockActual} unidades
-                  </div>
-                </div>
-                <button
-                  onClick={() => abrirEdicion(producto)}
-                  className="text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg px-3 py-1.5 active:scale-95 transition"
+        <div className="mb-4 bg-white border border-red-200 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setReposicionAbierta((v) => !v)}
+            className="w-full flex items-center justify-between p-3"
+          >
+            <span className="text-sm font-medium text-red-600">
+              Ver reposición urgente ({stockBajo.length})
+            </span>
+            <span className="text-red-400 text-xs">{reposicionAbierta ? '▲' : '▼'}</span>
+          </button>
+
+          {reposicionAbierta && (
+            <div className="border-t border-red-100 p-3 space-y-2 bg-red-50">
+              {stockBajo.map((producto) => (
+                <div
+                  key={producto.id}
+                  className="bg-white border border-red-200 rounded-lg p-3 flex items-center justify-between"
                 >
-                  Reponer
-                </button>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{producto.nombre}</div>
+                    <div className="text-xs text-red-600">
+                      Quedan {producto.stockActual} unidades
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => abrirEdicion(producto)}
+                    className="text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg px-3 py-1.5 active:scale-95 transition"
+                  >
+                    Reponer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

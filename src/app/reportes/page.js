@@ -130,10 +130,9 @@ export default function Reportes() {
               return (
                 <button
                   key={clave}
-                  onClick={() => tieneVentas && setDiaSeleccionado(clave)}
-                  disabled={!tieneVentas}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm relative
-                    ${tieneVentas ? 'bg-gray-900 text-white font-medium active:scale-95 transition' : 'text-gray-700'}
+                  onClick={() => setDiaSeleccionado(clave)}
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm relative active:scale-95 transition
+                    ${tieneVentas ? 'bg-gray-900 text-white font-medium' : 'text-gray-700 hover:bg-gray-100'}
                     ${esHoy(dia) && !tieneVentas ? 'border border-gray-900' : ''}
                   `}
                 >
@@ -161,32 +160,39 @@ export default function Reportes() {
               <h2 className="text-base font-semibold text-gray-900 mb-1 capitalize">
                 {formatearFechaLarga(diaSeleccionado)}
               </h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Total a recibir:{' '}
-                <span className="font-semibold text-gray-900">
-                  {formatearMoneda(totalDelDia(ventasDelDiaSeleccionado))}
-                </span>{' '}
-                · {ventasDelDiaSeleccionado.length} venta{ventasDelDiaSeleccionado.length > 1 ? 's' : ''}
-              </p>
 
-              <div className="space-y-2">
-                {ventasDelDiaSeleccionado
-                  .slice()
-                  .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-                  .map((venta) => (
-                    <div key={venta.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs text-gray-400">{formatearHora(venta.fecha)}</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatearMoneda(venta.total)}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {venta.detalles.map((d) => `${d.producto.nombre} x${d.cantidad}`).join(', ')}
-                      </div>
-                    </div>
-                  ))}
-              </div>
+              {ventasDelDiaSeleccionado.length === 0 ? (
+                <p className="text-sm text-gray-400 mt-3">No hubo ventas este día</p>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Total a recibir:{' '}
+                    <span className="font-semibold text-gray-900">
+                      {formatearMoneda(totalDelDia(ventasDelDiaSeleccionado))}
+                    </span>{' '}
+                    · {ventasDelDiaSeleccionado.length} venta{ventasDelDiaSeleccionado.length > 1 ? 's' : ''}
+                  </p>
+
+                  <div className="space-y-2">
+                    {ventasDelDiaSeleccionado
+                      .slice()
+                      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                      .map((venta) => (
+                        <div key={venta.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-400">{formatearHora(venta.fecha)}</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formatearMoneda(venta.total)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {venta.detalles.map((d) => `${d.producto.nombre} x${d.cantidad}`).join(', ')}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="p-4 border-t border-gray-100">
