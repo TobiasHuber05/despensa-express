@@ -7,20 +7,17 @@ export function proxy(request: NextRequest) {
 
   const esRutaPublica =
     pathname === '/login' ||
-    pathname === '/api/auth' ||
+    pathname.startsWith('/api/auth') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon')
+    pathname === '/favicon.ico' ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js'
 
   if (esRutaPublica) {
     return NextResponse.next()
   }
 
-  if (!process.env.APP_PIN) {
-    console.error('APP_PIN no está configurado')
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  if (auth !== process.env.APP_PIN) {
+  if (!auth) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -28,5 +25,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/', '/login', '/vender', '/stock/:path*', '/reportes/:path*', '/cierre-caja/:path*', '/api/:path*'],
 }

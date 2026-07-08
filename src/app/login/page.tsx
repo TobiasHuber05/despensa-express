@@ -19,6 +19,10 @@ export default function Login() {
     })
 
     if (res.ok) {
+      const data = await res.json()
+      if (data.usuario) {
+        localStorage.setItem('usuario', JSON.stringify(data.usuario))
+      }
       router.push('/')
       router.refresh()
     } else {

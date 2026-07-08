@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
 
@@ -11,6 +12,7 @@ const MESES = [
 const DIAS_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 export default function Reportes() {
+  const router = useRouter()
   const [ventas, setVentas] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mesActual, setMesActual] = useState(() => {
@@ -18,16 +20,40 @@ export default function Reportes() {
     return { anio: hoy.getFullYear(), mes: hoy.getMonth() }
   })
   const [diaSeleccionado, setDiaSeleccionado] = useState<any>(null)
+  const [filtroUsuario, setFiltroUsuario] = useState('')
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
 
   useEffect(() => {
+    try {
+      const data = localStorage.getItem('usuario')
+      if (data) {
+        const u = JSON.parse(data)
+        if (u.rol !== 'admin') {
+          router.push('/')
+          return
+        }
+      } else {
+        router.push('/login')
+        return
+      }
+    } catch { router.push('/login'); return }
+
     async function cargar() {
-      const res = await fetch('/api/ventas')
+      const params = new URLSearchParams()
+      if (filtroUsuario) params.set('usuarioPin', filtroUsuario)
+      if (fechaDesde) params.set('fechaDesde', fechaDesde)
+      if (fechaHasta) params.set('fechaHasta', fechaHasta)
+
+      const url = `/api/ventas${params.toString() ? '?' + params.toString() : ''}`
+      const res = await fetch(url)
       const data = await res.json()
       setVentas(data)
+
       setCargando(false)
     }
     cargar()
-  }, [])
+  }, [filtroUsuario, fechaDesde, fechaHasta])
 
   const gruposPorDia: Record<string, any[]> = {}
   ventas.forEach((venta: any) => {
@@ -48,7 +74,12 @@ export default function Reportes() {
       const res = await fetch(`/api/ventas/${ventaId}`, { method: 'DELETE' })
 
       if (res.ok) {
-        const resVentas = await fetch('/api/ventas')
+        const params = new URLSearchParams()
+        if (filtroUsuario) params.set('usuarioPin', filtroUsuario)
+        if (fechaDesde) params.set('fechaDesde', fechaDesde)
+        if (fechaHasta) params.set('fechaHasta', fechaHasta)
+        const url = `/api/ventas${params.toString() ? '?' + params.toString() : ''}`
+        const resVentas = await fetch(url)
         const data = await resVentas.json()
         setVentas(data)
         alert('Venta anulada correctamente')
@@ -70,6 +101,8 @@ export default function Reportes() {
       url += `mes=${mesActual.mes + 1}&anio=${mesActual.anio}`
     }
 
+    if (filtroUsuario) url += `&usuarioPin=${filtroUsuario}`
+
     window.location.href = url
   }
 
@@ -89,13 +122,8 @@ export default function Reportes() {
     setMesActual((prev) => {
       let mes = prev.mes + delta
       let anio = prev.anio
-      if (mes < 0) {
-        mes = 11
-        anio -= 1
-      } else if (mes > 11) {
-        mes = 0
-        anio += 1
-      }
+      if (mes < 0) { mes = 11; anio -= 1 }
+      else if (mes > 11) { mes = 0; anio += 1 }
       return { anio, mes }
     })
   }
@@ -123,7 +151,43 @@ export default function Reportes() {
       {cargando && <Spinner texto="Cargando reportes..." />}
 
       {!cargando && (
-        <div className="space-y-3">
+        <>
+          <div className="bg-white/95 border border-gray-300 rounded-xl p-3 mb-4 shadow-md space-y-2">
+            <div>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Filtrar por usuario</label>
+              <select
+                value={filtroUsuario}
+                onChange={(e) => setFiltroUsuario(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los usuarios</option>
+                <option value="1234">Admin (1234)</option>
+                <option value="0000">Vendedor 1 (0000)</option>
+                <option value="1111">Vendedor 2 (1111)</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-xs font-bold text-gray-700 block mb-1">Desde</label>
+                <input
+                  type="date"
+                  value={fechaDesde}
+                  onChange={(e) => setFechaDesde(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs font-bold text-gray-700 block mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={fechaHasta}
+                  onChange={(e) => setFechaHasta(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => exportarReporte('mes')}
@@ -162,20 +226,16 @@ export default function Reportes() {
 
             <div className="grid grid-cols-7 gap-1 mb-1">
               {DIAS_SEMANA.map((d) => (
-                <div key={d} className="text-center text-xs text-gray-600 font-bold py-1">
-                  {d}
-                </div>
+                <div key={d} className="text-center text-xs text-gray-600 font-bold py-1">{d}</div>
               ))}
             </div>
 
             <div className="grid grid-cols-7 gap-1">
               {celdas.map((dia, i) => {
                 if (dia === null) return <div key={`vacio-${i}`} />
-
                 const clave = claveDelDia(dia)
                 const ventasDia = gruposPorDia[clave]
                 const tieneVentas = ventasDia && ventasDia.length > 0
-
                 return (
                   <button
                     key={clave}
@@ -191,7 +251,7 @@ export default function Reportes() {
               })}
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {diaSeleccionado && (
@@ -216,7 +276,7 @@ export default function Reportes() {
               ) : (
                 <>
                   <p className="text-sm text-gray-700 font-semibold mb-4">
-                    Total a recibir:{' '}
+                    Total:{' '}
                     <span className="font-bold text-blue-600">
                       {formatearMoneda(totalDelDia(ventasDelDiaSeleccionado))}
                     </span>{' '}
@@ -232,8 +292,11 @@ export default function Reportes() {
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-xs font-semibold text-gray-700">{formatearHora(venta.fecha)}</span>
                             <div className="flex gap-2 items-center">
+                              <span className="text-xs font-semibold text-gray-500">{venta.usuario?.nombre || venta.usuarioPin}</span>
                               <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                {venta.tipoPago}
+                                {venta.tipoPago === 'otro' && venta.otroPagoDescripcion
+                                  ? venta.otroPagoDescripcion
+                                  : venta.tipoPago}
                               </span>
                               <span className="text-sm font-bold text-blue-600">
                                 {formatearMoneda(venta.total)}

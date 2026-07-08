@@ -154,14 +154,18 @@ export default function CierreCaja() {
                 <span className="text-lg font-bold text-blue-600">{formatearMoneda(cierre.totalVentas)}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="bg-green-50 p-2 rounded border border-green-200">
                   <div className="text-green-700 font-semibold">Efectivo</div>
                   <div className="text-green-900 font-bold">{formatearMoneda(cierre.totalEfectivo)}</div>
                 </div>
                 <div className="bg-blue-50 p-2 rounded border border-blue-200">
-                  <div className="text-blue-700 font-semibold">Tarjeta</div>
-                  <div className="text-blue-900 font-bold">{formatearMoneda(cierre.totalTarjeta)}</div>
+                  <div className="text-blue-700 font-semibold">Transferencia</div>
+                  <div className="text-blue-900 font-bold">{formatearMoneda(cierre.totalTransferencia)}</div>
+                </div>
+                <div className="bg-purple-50 p-2 rounded border border-purple-200">
+                  <div className="text-purple-700 font-semibold">Otro</div>
+                  <div className="text-purple-900 font-bold">{formatearMoneda(cierre.totalOtro)}</div>
                 </div>
               </div>
             </div>

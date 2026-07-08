@@ -2,22 +2,32 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// POST: registrar una venta
-// Body esperado: { items: [{ productoId: 1, cantidad: 2 }], tipoPago: "efectivo" }
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()
-    const { items, tipoPago = 'efectivo' } = body
+    const { items, tipoPago = 'efectivo', otroPagoDescripcion, usuarioPin } = body
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'La venta no tiene productos' }, { status: 400 })
     }
 
-    if (!['efectivo', 'tarjeta'].includes(tipoPago)) {
+    if (!['efectivo', 'transferencia', 'otro'].includes(tipoPago)) {
       return NextResponse.json({ error: 'Tipo de pago inválido' }, { status: 400 })
     }
 
-    // Usamos una transacción: o se hace todo (venta + descuento de stock), o no se hace nada
+    if (tipoPago === 'otro' && !otroPagoDescripcion?.trim()) {
+      return NextResponse.json({ error: 'Debe escribir una descripción para el método de pago' }, { status: 400 })
+    }
+
+    if (!usuarioPin) {
+      const cookiePin = request.cookies.get('auth')?.value
+      if (!cookiePin) {
+        return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+      }
+    }
+
+    const pin = usuarioPin || request.cookies.get('auth')?.value
+
     const resultado = await prisma.$transaction(async (tx) => {
       let total = 0
       const detallesData: { productoId: number; cantidad: number; precioUnitario: any }[] = []
@@ -44,18 +54,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           precioUnitario: producto.precio,
         })
 
-        // Descontar stock
         await tx.producto.update({
           where: { id: producto.id },
           data: { stockActual: { decrement: item.cantidad } },
         })
       }
 
-      // Crear la venta con sus detalles
       const venta = await tx.venta.create({
         data: {
           total,
-          tipoPago: tipoPago || 'efectivo',
+          tipoPago,
+          otroPagoDescripcion: tipoPago === 'otro' ? otroPagoDescripcion : null,
+          usuarioPin: pin!,
           detalles: {
             create: detallesData,
           },
@@ -72,12 +82,40 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// GET: listar ventas completadas (para reportes después)
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(request.url)
+    const usuarioPin = searchParams.get('usuarioPin')
+    const fechaDesde = searchParams.get('fechaDesde')
+    const fechaHasta = searchParams.get('fechaHasta')
+
+    const where: any = {}
+
+    if (usuarioPin) {
+      where.usuarioPin = usuarioPin
+    }
+
+    if (fechaDesde || fechaHasta) {
+      where.fecha = {}
+      if (fechaDesde) {
+        const d = new Date(fechaDesde)
+        d.setUTCHours(0, 0, 0, 0)
+        where.fecha.gte = d
+      }
+      if (fechaHasta) {
+        const d = new Date(fechaHasta)
+        d.setUTCHours(23, 59, 59, 999)
+        where.fecha.lte = d
+      }
+    }
+
     const ventas = await prisma.venta.findMany({
+      where,
       orderBy: { fecha: 'desc' },
-      include: { detalles: { include: { producto: true } } },
+      include: {
+        detalles: { include: { producto: true } },
+        usuario: { select: { pin: true, nombre: true, rol: true } },
+      },
     })
     return NextResponse.json(ventas)
   } catch {

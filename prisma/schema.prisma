@@ -20,24 +20,37 @@ model Producto {
   detalles      DetalleVenta[]
 }
 
-model Venta {
-  id      Int      @id @default(autoincrement())
-  fecha   DateTime @default(now())
-  total   Decimal  @db.Decimal(10, 2)
-  tipoPago String  @default("efectivo") // "efectivo" o "tarjeta"
-  estado  String  @default("completada") // "completada" o "anulada"
+model Usuario {
+  pin    String @id
+  nombre String
+  rol    String // "admin" o "vendedor"
 
-  detalles DetalleVenta[]
+  ventas Venta[]
+}
+
+model Venta {
+  id                Int      @id @default(autoincrement())
+  fecha             DateTime @default(now())
+  total             Decimal  @db.Decimal(10, 2)
+  tipoPago          String   @default("efectivo") // "efectivo", "transferencia", "otro"
+  otroPagoDescripcion String? // descripción cuando tipoPago es "otro"
+  estado            String   @default("completada") // "completada" o "anulada"
+  usuarioPin        String
+
+  usuario           Usuario  @relation(fields: [usuarioPin], references: [pin])
+  detalles          DetalleVenta[]
 }
 
 model CierreCaja {
-  id              Int      @id @default(autoincrement())
-  fecha           DateTime @default(now())
-  totalEfectivo   Decimal  @db.Decimal(10, 2) @default(0)
-  totalTarjeta    Decimal  @db.Decimal(10, 2) @default(0)
-  totalVentas     Decimal  @db.Decimal(10, 2) @default(0)
-  cantidad        Int      @default(0)
-  createdAt       DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  fecha             DateTime @default(now())
+  totalEfectivo     Decimal  @db.Decimal(10, 2) @default(0)
+  totalTarjeta      Decimal  @db.Decimal(10, 2) @default(0) // se mantiene por compatibilidad, ahora es transferencia + otro
+  totalTransferencia Decimal @db.Decimal(10, 2) @default(0)
+  totalOtro         Decimal  @db.Decimal(10, 2) @default(0)
+  totalVentas       Decimal  @db.Decimal(10, 2) @default(0)
+  cantidad          Int      @default(0)
+  createdAt         DateTime @default(now())
 }
 
 model DetalleVenta {

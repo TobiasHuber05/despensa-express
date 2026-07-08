@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
 import Spinner from '@/components/Spinner'
 import { formatearMoneda } from '@/lib/formato'
@@ -22,6 +23,7 @@ function IconoEscanear() {
 }
 
 export default function Stock() {
+  const router = useRouter()
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState<any>(null)
@@ -53,13 +55,27 @@ export default function Stock() {
   }
 
   useEffect(() => {
+    try {
+      const data = localStorage.getItem('usuario')
+      if (data) {
+        const u = JSON.parse(data)
+        if (u.rol !== 'admin') {
+          router.push('/')
+          return
+        }
+      } else {
+        router.push('/login')
+        return
+      }
+    } catch { router.push('/login'); return }
+
     montado.current = true
     const timer = setTimeout(() => cargarProductos(), 0)
     return () => {
       montado.current = false
       clearTimeout(timer)
     }
-  }, [])
+  }, [router])
 
   function abrirNuevo() {
     setEditando(null)

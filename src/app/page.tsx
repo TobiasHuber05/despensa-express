@@ -10,9 +10,18 @@ export default function Inicio() {
   const [productos, setProductos] = useState([])
   const [ventas, setVentas] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [usuario] = useState<any>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const data = localStorage.getItem('usuario')
+      return data ? JSON.parse(data) : null
+    } catch { return null }
+  })
   const router = useRouter()
 
   useEffect(() => {
+    if (!usuario) { router.push('/login'); return }
+
     let montado = true
     async function cargar() {
       try {
@@ -37,14 +46,13 @@ export default function Inicio() {
     }
     cargar()
     return () => { montado = false }
-  }, [])
+  }, [usuario, router])
 
   async function salir() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-    } catch {
-      // el logout sigue aunque falle la red
-    }
+    } catch {}
+    localStorage.removeItem('usuario')
     router.push('/login')
   }
 
@@ -53,11 +61,15 @@ export default function Inicio() {
   const totalHoy = ventasHoy.reduce((acc: number, v: any) => acc + Number(v.total), 0)
   const promedioHoy = ventasHoy.length > 0 ? totalHoy / ventasHoy.length : 0
   const stockBajo = Array.isArray(productos) ? productos.filter((p: any) => p.stockActual < 5) : []
-
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
       <div className="flex items-start justify-between mb-4 bg-white/10 backdrop-blur-sm rounded-lg p-3">
-        <h1 className="text-2xl font-bold text-white">Despensa Express</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Despensa Express</h1>
+          <p className="text-xs text-white/60 mt-0.5">
+            {usuario?.nombre} {usuario?.rol === 'admin' ? '(Admin)' : '(Vendedor)'}
+          </p>
+        </div>
         <button
           onClick={salir}
           className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg active:scale-95 transition"
@@ -112,11 +124,11 @@ export default function Inicio() {
               🛒 Vender
             </Link>
             <Link
-              href="/stock"
-              className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl py-4 text-center font-bold text-sm active:scale-95 transition shadow-lg border border-emerald-500/50"
-            >
-              📦 Ver stock
-            </Link>
+                href="/stock"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl py-4 text-center font-bold text-sm active:scale-95 transition shadow-lg border border-emerald-500/50"
+              >
+                📦 Ver stock
+              </Link>
           </div>
         </>
       )}

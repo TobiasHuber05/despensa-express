@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import EscanerCodigoBarras from '@/components/EscanerCodigoBarras'
 import { formatearMoneda } from '@/lib/formato'
 
@@ -27,6 +27,18 @@ export default function Vender() {
   const [buscando, setBuscando] = useState(false)
   const [escaneando, setEscaneando] = useState(false)
   const [tipoPago, setTipoPago] = useState('efectivo')
+  const [otroPagoTexto, setOtroPagoTexto] = useState('')
+  const [usuarioPin, setUsuarioPin] = useState('')
+
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem('usuario')
+      if (data) {
+        const u = JSON.parse(data)
+        setUsuarioPin(u.pin)
+      }
+    } catch {}
+  }, [])
 
   async function buscarProducto(e: React.FormEvent) {
     e.preventDefault()
@@ -125,19 +137,31 @@ export default function Vender() {
   async function confirmarVenta() {
     if (carrito.length === 0) return
 
+    if (tipoPago === 'otro' && !otroPagoTexto.trim()) {
+      setMensaje('Escribí una descripción para el método de pago')
+      return
+    }
+
     setMensaje('Guardando venta...')
 
     try {
+      const body: any = {
+        items: carrito.map((item: any) => ({
+          productoId: item.id,
+          cantidad: item.cantidad,
+        })),
+        tipoPago,
+        usuarioPin,
+      }
+
+      if (tipoPago === 'otro') {
+        body.otroPagoDescripcion = otroPagoTexto.trim()
+      }
+
       const res = await fetch('/api/ventas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: carrito.map((item: any) => ({
-            productoId: item.id,
-            cantidad: item.cantidad,
-          })),
-          tipoPago,
-        }),
+        body: JSON.stringify(body),
       })
 
       const data = await res.json()
@@ -149,6 +173,7 @@ export default function Vender() {
 
       setMensaje(`Venta registrada: ${formatearMoneda(total)} (${tipoPago})`)
       setCarrito([])
+      setOtroPagoTexto('')
     } catch {
       setMensaje('Error de red: no se pudo conectar al servidor')
     }
@@ -257,10 +282,10 @@ export default function Vender() {
 
       <div className="mb-3 bg-white/95 rounded-lg p-3 shadow-md">
         <label className="text-sm font-bold text-gray-700 block mb-2">Tipo de pago</label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
           <button
             type="button"
-            onClick={() => setTipoPago('efectivo')}
+            onClick={() => { setTipoPago('efectivo'); setOtroPagoTexto('') }}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
               tipoPago === 'efectivo'
                 ? 'bg-green-600 text-white shadow-md'
@@ -271,16 +296,36 @@ export default function Vender() {
           </button>
           <button
             type="button"
-            onClick={() => setTipoPago('tarjeta')}
+            onClick={() => { setTipoPago('transferencia'); setOtroPagoTexto('') }}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
-              tipoPago === 'tarjeta'
+              tipoPago === 'transferencia'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'bg-gray-200 text-gray-900'
             }`}
           >
-            💳 Tarjeta
+            🏦 Transferencia
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipoPago('otro')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+              tipoPago === 'otro'
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'bg-gray-200 text-gray-900'
+            }`}
+          >
+            📝 Otro
           </button>
         </div>
+        {tipoPago === 'otro' && (
+          <input
+            type="text"
+            placeholder="Describí el método de pago (ej: Mercado Pago, Cripto, etc.)"
+            value={otroPagoTexto}
+            onChange={(e) => setOtroPagoTexto(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white/95 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        )}
       </div>
 
       <button
