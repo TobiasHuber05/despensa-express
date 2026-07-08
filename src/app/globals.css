@@ -25,24 +25,8 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('/fondo.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-color: #1f2937;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
   z-index: -2;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.25);
-  z-index: -1;
 }
 
 body {
