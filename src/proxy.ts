@@ -5,7 +5,9 @@ export function proxy(request: NextRequest) {
   const auth = request.cookies.get('auth')?.value
   const { pathname } = request.nextUrl
 
+  const esExt = /\.(png|ico|jpg|jpeg|gif|svg|webp|json|js|css|txt|xml)$/i
   const esRutaPublica =
+    esExt.test(pathname) ||
     pathname === '/login' ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/_next') ||

@@ -25,7 +25,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     res.cookies.set('auth', usuario.pin, {
       httpOnly: true,
-      secure: true,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30,
       path: '/',

@@ -5,12 +5,6 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 export const metadata = {
   title: "Despensa Express",
   description: "Sistema de ventas y stock",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Despensa Express",
-  },
 };
 
 export const viewport = {
