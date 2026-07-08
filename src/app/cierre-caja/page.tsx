@@ -58,7 +58,7 @@ export default function CierreCaja() {
         const nuevosCierres = await resCierres.json()
         setCierres(Array.isArray(nuevosCierres) ? nuevosCierres : [])
       } catch {
-        // fallback silencioso: los cierres se recargan con el próximo useEffect
+
       }
     } catch {
       setMensaje('Error al crear cierre de caja')

@@ -6,7 +6,7 @@ export default function ServiceWorkerRegister() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {
-        // silencioso
+
       })
     }
   }, [])

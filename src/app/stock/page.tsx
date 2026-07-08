@@ -148,7 +148,6 @@ export default function Stock() {
 
   const stockBajo = productos.filter((p: any) => p.stockActual < 5)
 
-  // Filtro de búsqueda (por nombre o código de barra, insensible a mayúsculas)
   const productosFiltrados = busqueda.trim()
     ? productos.filter(
         (p: any) =>
@@ -177,7 +176,6 @@ export default function Stock() {
         </div>
       </div>
 
-      {/* Buscador */}
       <div className="mb-4 relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
         <input

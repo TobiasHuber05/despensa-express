@@ -2,7 +2,6 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// GET: buscar productos activos por código de barras o por nombre
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url)
   const codigo = searchParams.get('codigo')
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST: crear un producto nuevo
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()

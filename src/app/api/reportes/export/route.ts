@@ -75,17 +75,14 @@ function generarPDF(doc: PDFKit.PDFDocument, titulo: string, ventas: any[]) {
   const pageWidth = doc.page.width - 60
   const leftMargin = 30
 
-  // Header
   doc.font('Helvetica-Bold').fontSize(18).text('Despensa Express', leftMargin, 30)
   doc.font('Helvetica').fontSize(12).fillColor('#666').text(titulo, leftMargin, 52)
   doc.fontSize(9).fillColor('#999').text(`Generado: ${new Date().toLocaleString('es-AR')}`, leftMargin, 68)
 
-  // Separador
   doc.moveTo(leftMargin, 85).lineTo(leftMargin + pageWidth, 85).strokeColor('#ddd').stroke()
 
   let y = 100
 
-  // Calcular totales
   let totalEfectivo = 0
   let totalTransferencia = 0
   let totalOtro = 0
@@ -96,7 +93,6 @@ function generarPDF(doc: PDFKit.PDFDocument, titulo: string, ventas: any[]) {
     return
   }
 
-  // Tabla
   const colFechaL = 30
   const colHoraL = 120
   const colUsuarioL = 170
@@ -104,7 +100,6 @@ function generarPDF(doc: PDFKit.PDFDocument, titulo: string, ventas: any[]) {
   const colTotalL = 320
   const colDetalleL = 370
 
-  // Headers de tabla
   doc.font('Helvetica-Bold').fontSize(8).fillColor('#333')
   doc.text('Fecha', colFechaL, y, { width: 80 })
   doc.text('Hora', colHoraL, y, { width: 45 })
@@ -152,7 +147,6 @@ function generarPDF(doc: PDFKit.PDFDocument, titulo: string, ventas: any[]) {
     totalGeneral += monto
   })
 
-  // Resumen
   y += 10
   doc.moveTo(leftMargin, y).lineTo(leftMargin + pageWidth, y).strokeColor('#333').stroke()
   y += 10
